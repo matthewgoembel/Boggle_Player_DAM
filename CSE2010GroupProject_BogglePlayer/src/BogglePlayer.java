@@ -6,6 +6,7 @@
   	
   Email addresses of group members:
   	aclayton2023@my.fit.edu
+   	mgoembel2022@my.fie.edu
   	
   Group name: 34b
 
