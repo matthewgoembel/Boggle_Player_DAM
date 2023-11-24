@@ -20,3 +20,31 @@ Algorithm:
   Word Validation: During the traversal, check if the formed sequences match any word in the trie. Apply the rules of adjacent letters and the 'QU' combination.
   Score Calculation: Keep track of valid words and their scores according to the given scoring system.
   Memory Management: Optimize memory usage by avoiding unnecessary storage.
+
+MORE IDEAS 11/23/2023 Matthew Goembel
+
+Data Structure:
+  Trie: Stores the whole dictionary. Trie allows for O(log(n)) traversal time and O(n) space worst case.
+    - Compression by common Prefixes (nodes with only one child) allows for < O(n) space
+    - Have a variable as the value V, that is true if the node is the end of a word. 
+  OR
+  Hashset: Stores the whole dictionary by unique Key. Allows for O(1) lookup with O(n) space. at worst.
+  2D Array: Represents the 4x4 Boggle board.
+  
+Algotithms:
+  Trie traversal:
+    1. Starting at the root, DFS each charchter in the boggle pattern, follow the coorosonding edges of the trie. 
+    2. If the edge DNE, stop. If the pattern is found & is marked as a word, success. Otherwise, repeat for the next character
+    3. O(m), where m is boggle pattern length (Each char in the pattern is looked at once).
+  OR
+  Hashset traversal:
+    1. Compare Key value
+    2. If it matches, word is found. Otherwise word DNE.
+    
+  Letter Checking: Use an Array indicies to check for adjacnency
+  Score: Calculated and changed acordingly after finding a word
+  Optimization Challnge: Minimize storage, without sacrificing program speed.
+  
+Overall: Trie would offer most efficiency in this senario. However, must:
+  1. Optimize for prefix checking
+  2. Avoid redundant computation / unessesary recusion
