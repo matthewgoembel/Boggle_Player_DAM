@@ -42,7 +42,7 @@ Algotithms:
     2. If it matches, word is found. Otherwise word DNE.
     
   Letter Checking: Use an Array indicies to check for adjacnency
-  Score: Calculated and changed acordingly after finding a word
+  Score: Calculated after adding up all word points
   Optimization Challnge: Minimize storage, without sacrificing program speed.
   
 Overall: Trie would offer most efficiency in this senario. However, must:
