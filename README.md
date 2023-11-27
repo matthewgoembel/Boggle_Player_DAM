@@ -48,3 +48,20 @@ Algotithms:
 Overall: Trie would offer most efficiency in this senario. However, must:
   1. Optimize for prefix checking
   2. Avoid redundant computation / unessesary recusion
+
+IDEAS 11/27/2023 Darian Dean
+
+Data Structure: 
+  Trie – Efficient for prefix searches of words and within the scope of the problem, efficient for word lookups. Building the Trie – Insert 
+  each word from the given dictionary into the Trie. The total time complexity for constructing the Trie is O(nm), where n is the number of words 
+  in the dictionary and m is the length of the word.
+
+  Boggle Board Structure: 2D array – represents 4x4 boggle game board.
+
+Algorithms: 
+  1. Trie Insertion – Iterate through each character of the word, traverse the Trie, and create new Trie nodes if necessary. Time complexity: O(m) m = length of the word.
+  2. Word lookup – Explores neighboring cells on the board using DFS, updating the current word and checking if it makes a valid word present in the Trie.
+  3. DFS – Depth-First Search algorithm, recursively explores adjacent cells on the board. Or use a stack to explore adjacent cells.
+
+ - During word lookup, if a word matches a word in the Trie, store that word/location and its score. 
+ - Optimize for memory usage
