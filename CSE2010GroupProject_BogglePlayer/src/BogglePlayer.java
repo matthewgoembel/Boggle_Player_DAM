@@ -21,37 +21,41 @@
 
 import java.util.*;
 
+// class TrieNode?
+// ...
 
 public class BogglePlayer {
     // Var alphabet size
     // Var TrieNode array of children
     // Var endOfAWord
     // Var TrieNode rootNode
+    // Var points
 
     // initialize BogglePlayer with a file of English words
     public BogglePlayer(String wordFile) {
-	// Initiate children of root (A-Z)
-	// Set endOfAWord for each node
+	// Initiate children of rootNode (A-Z)
+	// Set endOfAWord for each TrieNode
     }
 
     // Insert(word) method O(word_length):
-    // 	  Each charchter of a word is an individual Trie node
-    //    For each charcter of the word:
+    // 	  Each char of a word is an individual Trie node
+    //    For each char of the word:
     // 	      Construct new nodes of the word. Trie depth = word_length.
     //        If word is a prefix of an existing word/Node already exists, 
-    //        combind non-new nodes as a prefix, mark remainder of word as endOfAWord
+    //        combine non-new nodes as a prefix, mark remainder of word as endOfAWord
     //        Mark final nodes at endOfAWord
     // 
     // Seach(word) method O(word_length):
-    //     Compares current charchter and moves down the trie
-    //     if we reach endOfAWord the word exists --> add points, compare highest 20 words
-    //     if current char DNE, stop searching, word cannot exist
+    //     Compares current char and moves down the trie
+    //     If we reach endOfAWord the word exists
+    //     If current char DNE, stop searching, word cannot exist
     // 
+    // Calculate Points: after top 20 words are found, add each 
+    //     word's rspective points to total score
     // 
-    // 
-    // based on the board, find valid words
+    // Based on the board, find valid words
     //
-    // board: 4x4 board, each element is a letter, 'Q' represents "QU", 
+    // Board: 4x4 board, each element is a letter, 'Q' represents "QU", 
     //    first dimension is row, second dimension is column
     //    ie, board[row][col]     
     //
@@ -60,16 +64,18 @@ public class BogglePlayer {
     //    Use null if fewer than 20 words.
     //
     // See Word.java for details of the Word class and
-    //     Location.java for details of the Location class
+    //    Location.java for details of the Location class
 
-    public Word[] getWords(char[][] board)
-    {
+    public Word[] getWords(char[][] board) {
 	Word[] myWords = new Word[20];
-
-
-
-
-
+	    
+        // Var Visited: [][] tracks visited cells
+        // DFS through each position on the board
+        //     If the last char of the current word is endOfWord, found, add the word
+        //     Recurr the DFS search along all <=8 possible paths, up to max word length (8 for optimal score),
+	//     from the current cell, but NOT duplicating paths
+        // Sort array by longest word_length, and return those words
+        //        
 
         return myWords;
     }
