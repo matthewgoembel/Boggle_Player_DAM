@@ -75,7 +75,9 @@ public class BogglePlayer {
         //     Recurr the DFS search along all <=8 possible paths, up to max word length (8 for optimal score),
 	//     from the current cell, but NOT duplicating paths
         // Sort array by longest word_length, and return those words
-        //        
+        //?>
+	// Time: O(M*N), # of cells * max word_length
+	// Space: O(M), # of cells
 
         return myWords;
     }
