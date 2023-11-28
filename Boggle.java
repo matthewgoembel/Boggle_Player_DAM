@@ -150,20 +150,6 @@ public class Boggle {
 		}
 	}
 
-	// Sets random gamboard based on set seed
-	public void setGameBoard() {
-            final char[] alphabet = "abcdefghijklmnopqrstuvwzyz".toCharArray();
-            Random random = new Random();
-            random.setSeed(13579);
-            gameBoard = new char[4][4];
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    final int randLetter = random.nextInt(alphabet.length);
-                    gameBoard[i][j] = alphabet[randLetter];
-                }
-            }
-	}
-
 	// Driver program to test above function
 	public static void main(String args[])
 	{
