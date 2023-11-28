@@ -1,8 +1,8 @@
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 /*
   Authors: 
   	Clayton, Anthony
@@ -28,8 +28,8 @@ public class BogglePlayer {
 
     static final int SIZE = 26;
 
-    static final int M = 3;
-    static final int N = 3;
+    static final int M = 4;
+    static final int N = 4;
 
     // trie Node
     static class TrieNode {
@@ -48,6 +48,7 @@ public class BogglePlayer {
     }
 
     static TrieNode root = new TrieNode();
+    ArrayList<Word> foundWords = new ArrayList<>();
 
     // initialize BogglePlayer with a file of English words
     // initialize boggle board
@@ -84,16 +85,9 @@ public class BogglePlayer {
 
     }
 
-    public void compress() {
-        /*
-         *
-         *
-         */
-    }
 
     static boolean isSafe(int i, int j, boolean[][] visited) {
-        return (i >= 0 && i < M && j >= 0
-                && j < N && !visited[i][j]);
+        return (i >= 0 && i < M && j >= 0 && j < N && !visited[i][j]);
     }
 
     /**
@@ -109,36 +103,27 @@ public class BogglePlayer {
             foundWords.add(currentWord);
             currentWord.addLetterRowAndCol(i, j);
         }
-            // If both I and j in range and we visited
-            // that element of matrix first time
-            if (isSafe(i, j, visited) && foundWords.size() < 20) {
-                // make it visited
-                visited[i][j] = true;
-                return;
+
+        // Mark the current cell as visited
+        visited[i][j] = true;
+
+        // traverse all children of the current root
+        int[] rowOffsets = {-1, -1, -1, 0, 0, 1, 1, 1};
+        int[] colOffsets = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+        for (int k = 0; k < 8; k++) {
+            int newRow = i + rowOffsets[k];
+            int newCol = j + colOffsets[k];
+
+            // Check if the new cell is safe to visit
+            if (isSafe(newRow, newCol, visited) && root.children[boggle[newRow][newCol] - 'A'] != null) {
+                searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, visited, str + boggle[newRow][newCol], foundWords);
             }
+        }
 
-                // traverse all child of current root
-                int[] rowOffsets = {-1, -1, -1, 0, 0, 1, 1, 1};
-                int[] colOffsets = {-1, 0, 1, -1, 1, -1, 0, 1};
-
-                for (int K = 0; K < SIZE; K++) {
-
-                    if (root.children[K] != null) {
-                        // current character
-                        char ch = (char) (K + 'A');
-                        int newRow = i + rowOffsets[i];
-                        int newCol = j + colOffsets[i];
-
-
-                        if (isSafe(newRow, newCol, visited)
-                                && boggle[newRow][newCol] == ch) {
-                            searchWord(root.children[K], boggle, newRow, newCol, visited, str + ch, foundWords);
-                        }
-                    }
-                }
-                // make current element unvisited
-                visited[i][j] = false;
-            }
+        // make current element unvisited
+        visited[i][j] = false;
+    }
 
 
     // Board: 4x4 board, each element is a letter, 'Q' represents "QU",
@@ -154,7 +139,6 @@ public class BogglePlayer {
 
     public Word[] getWords(char[][] boggle) {
         Word[] myWords = new Word[20];
-        ArrayList<Word> foundWords = new ArrayList<>();
         // Mark all characters as not visited
         boolean[][] visited = new boolean[M][N];
         TrieNode pChild = root;
@@ -175,16 +159,28 @@ public class BogglePlayer {
                 }
             }
         }
-        for (int i = 0; i < foundWords.size(); i++) {
+        int numWordsToCopy = Math.min(foundWords.size(), 20);
+        for (int i = 0; i < numWordsToCopy; i++) {
             myWords[i] = foundWords.get(i);
         }
         return myWords;
     }
 
-
+    // For program texting
     public static void main(String[] args) {
+        // Test boggle game
         BogglePlayer play = new BogglePlayer(args[0]);
+        char[][] boggle = {
+                {'N', 'N', 'I', 'C'},
+                {'S', 'E', 'D', 'R'},
+                {'M', 'A', 'R', 'E'},
+                {'B', 'O', 'T', 'S'}
+        };
+        Word[] words = play.getWords(boggle);
+        // Display found word list
+        for (Word w : words) {
+            System.out.print(w.getWord() + "*");
+        }
     }
 }
-
 
