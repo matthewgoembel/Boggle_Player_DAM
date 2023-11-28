@@ -65,3 +65,6 @@ Algorithms:
 
  - During word lookup, if a word matches a word in the Trie, store that word/location and its score. 
  - Optimize for memory usage
+
+MEETING 11/27/2023
+All members met in person to discuss potential algorithm and approaches to assignment. Using a trie to store the dictionary and a 2D array to store the boggle board are the lead candidates so far. Discussed the time complexity of searching for words on the boggle board and whether to approach it recursively or not.
