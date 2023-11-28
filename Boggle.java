@@ -23,7 +23,7 @@ public class Boggle {
 				Child[i] = null;
 		}
 	}
-
+	// static TrieNode root;
 	public TrieNode buildTrie (String wordFile) {
 	        Scanner input = new Scanner(wordFile);
 	        while (input.hasNext()) {
