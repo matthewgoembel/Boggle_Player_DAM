@@ -24,6 +24,23 @@ public class Boggle {
 		}
 	}
 
+	public TrieNode buildTrie (String wordFile) {
+	        Scanner input = new Scanner(wordFile);
+	        while (input.hasNext()) {
+	            String word = input.next().toUpperCase();
+	            TrieNode node = root;
+	            for (char c : word.toCharArray()) {
+	                int charIndex = c - 'A';  // Get alphabet position (0-25)
+	                if (node.children[charIndex] == null) {
+	                    node.children[charIndex] = new TrieNode(c);
+	                }
+	                node = node.children[charIndex];
+	            }
+	            node.endOfWord = true; // Reached last char of word
+	        }
+	        return root;
+	}
+
 	// If not present, inserts a key into the trie
 	// If the key is a prefix of trie node, just
 	// marks leaf node
