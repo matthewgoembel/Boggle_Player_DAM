@@ -1,3 +1,8 @@
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 /*
   Authors: 
   	Clayton, Anthony
@@ -19,67 +24,167 @@
 
 */
 
-import java.util.*;
-
-// class TrieNode?
-// ...
-
 public class BogglePlayer {
-    // Var alphabet size
-    // Var TrieNode array of children
-    // Var endOfAWord
-    // Var TrieNode rootNode
-    // Var points
 
-    // initialize BogglePlayer with a file of English words
-    public BogglePlayer(String wordFile) {
-	// Initiate children of rootNode (A-Z)
-	// Set endOfAWord for each TrieNode
+    static final int SIZE = 26;
+
+    static final int M = 3;
+    static final int N = 3;
+
+    // trie Node
+    static class TrieNode {
+        TrieNode[] children = new TrieNode[SIZE];
+
+        // isLeaf is true if the node represents
+        // end of a word
+        boolean leaf;
+
+        // constructor
+        public TrieNode() {
+            leaf = false;
+            for (int i = 0; i < SIZE; i++)
+                children[i] = null;
+        }
     }
 
-    // Insert(word) method O(word_length):
-    // 	  Each char of a word is an individual Trie node
+    static TrieNode root = new TrieNode();
+
+    // initialize BogglePlayer with a file of English words
+    // initialize boggle board
+    public BogglePlayer(String wordFile) {
+        buildTrie(wordFile);
+    }
+
+    // buildTrie(word):
+    // 	 Each char of a word is an individual Trie node
     //    For each char of the word:
-    // 	      Construct new nodes of the word. Trie depth = word_length.
-    //        If word is a prefix of an existing word/Node already exists, 
-    //        combine non-new nodes as a prefix, mark remainder of word as endOfAWord
-    //        Mark final nodes at endOfAWord
-    // 
-    // Seach(word) method O(word_length):
-    //     Compares current char and moves down the trie
-    //     If we reach endOfAWord the word exists
-    //     If current char DNE, stop searching, word cannot exist
-    // 
-    // Calculate Points: after top 20 words are found, add each 
-    //     word's rspective points to total score
-    // 
-    // Based on the board, find valid words
-    //
-    // Board: 4x4 board, each element is a letter, 'Q' represents "QU", 
+    //      Add new nodes only:
+    //        If word is a prefix of an existing word/Node already exists,
+    //        use same nodes as a prefix
+    //        If not create new node
+    //     Mark final nodes as endOfAWord
+    public void buildTrie(String wordFile) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(wordFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String word = line.trim().toUpperCase();
+                TrieNode node = root;
+                for (char c : word.toCharArray()) {
+                    int charIndex = c - 'A';
+                    if (node.children[charIndex] == null) {
+                        node.children[charIndex] = new TrieNode();
+                    }
+                    node = node.children[charIndex];
+                }
+                node.leaf = true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle the exception according to your requirements
+        }
+
+    }
+
+    public void compress() {
+        /*
+         *
+         *
+         */
+    }
+
+    static boolean isSafe(int i, int j, boolean[][] visited) {
+        return (i >= 0 && i < M && j >= 0
+                && j < N && !visited[i][j]);
+    }
+
+    /**
+     * Returns points for given word, based on length
+     */
+    static void searchWord(TrieNode root, char[][] boggle, int i,
+                           int j, boolean[][] visited, String str, ArrayList<Word> foundWords) {
+        // if we found word in trie / dictionary
+        Word currentWord = new Word(str);
+
+        if (root.leaf && str.length() > 4) {
+            // Add to word list
+            foundWords.add(currentWord);
+            currentWord.addLetterRowAndCol(i, j);
+        }
+            // If both I and j in range and we visited
+            // that element of matrix first time
+            if (isSafe(i, j, visited) && foundWords.size() < 20) {
+                // make it visited
+                visited[i][j] = true;
+                return;
+            }
+
+                // traverse all child of current root
+                int[] rowOffsets = {-1, -1, -1, 0, 0, 1, 1, 1};
+                int[] colOffsets = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+                for (int K = 0; K < SIZE; K++) {
+
+                    if (root.children[K] != null) {
+                        // current character
+                        char ch = (char) (K + 'A');
+                        int newRow = i + rowOffsets[i];
+                        int newCol = j + colOffsets[i];
+
+
+                        if (isSafe(newRow, newCol, visited)
+                                && boggle[newRow][newCol] == ch) {
+                            searchWord(root.children[K], boggle, newRow, newCol, visited, str + ch, foundWords);
+                        }
+                    }
+                }
+                // make current element unvisited
+                visited[i][j] = false;
+            }
+
+
+    // Board: 4x4 board, each element is a letter, 'Q' represents "QU",
     //    first dimension is row, second dimension is column
-    //    ie, board[row][col]     
-    //
-    // Return at most 20 valid words in UPPERCASE and 
+    //    ie, board[row][col]
+
+    // Return at most 20 valid words in UPPERCASE and
     //    their paths of locations on the board in myWords;
     //    Use null if fewer than 20 words.
     //
     // See Word.java for details of the Word class and
     //    Location.java for details of the Location class
 
-    public Word[] getWords(char[][] board) {
-	Word[] myWords = new Word[20];
-	    
-        // Var Visited: [][] tracks visited cells
-        // DFS through each position on the board
-        //     If the last char of the current word is endOfWord, found, add the word
-        //     Recurr the DFS search along all <=8 possible paths, up to max word length (8 for optimal score),
-	//     from the current cell, but NOT duplicating paths
-        // Sort array by longest word_length, and return those words
-        //?>
-	// Time: O(M*N), # of cells * max word_length
-	// Space: O(M), # of cells
+    public Word[] getWords(char[][] boggle) {
+        Word[] myWords = new Word[20];
+        ArrayList<Word> foundWords = new ArrayList<>();
+        // Mark all characters as not visited
+        boolean[][] visited = new boolean[M][N];
+        TrieNode pChild = root;
 
+        StringBuilder str = new StringBuilder();
+
+        // traverse all matrix elements
+        for (int i = 0; i < M; i++) {
+            for (int j = 0; j < N; j++) {
+                // we start searching for word in dictionary
+                // if we found a character which is child
+                // of Trie root
+                if (pChild.children[(boggle[i][j]) - 'A'] != null && foundWords.size() < 20) {
+                    str.append(boggle[i][j]);
+                    searchWord(pChild.children[(boggle[i][j]) - 'A'],
+                            boggle, i, j, visited, str.toString(), foundWords);
+                    str = new StringBuilder();
+                }
+            }
+        }
+        for (int i = 0; i < foundWords.size(); i++) {
+            myWords[i] = foundWords.get(i);
+        }
         return myWords;
     }
 
+
+    public static void main(String[] args) {
+        BogglePlayer play = new BogglePlayer(args[0]);
+    }
 }
+
+
