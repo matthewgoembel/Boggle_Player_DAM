@@ -24,7 +24,7 @@ public class Boggle {
 		}
 	}
 	// static TrieNode root;
-	public TrieNode buildTrie (String wordFile) {
+	public TrieNode buildTrie (TrieNode root, String wordFile) {
 	        Scanner input = new Scanner(wordFile);
 	        while (input.hasNext()) {
 	            String word = input.next().toUpperCase();
