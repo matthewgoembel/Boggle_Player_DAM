@@ -36,6 +36,14 @@ public class Word
 	word = "";
 	path = new ArrayList<Location>(8);  
     }
+    
+    public Word addChar(Word word, char c) {
+    	Word newWord = new Word(word.getWord() + c);
+    	newWord.setPath(word.path);
+    	
+    	
+    	return newWord;
+    }
 
     /** 
      * constructor with an initial maximum path length;
