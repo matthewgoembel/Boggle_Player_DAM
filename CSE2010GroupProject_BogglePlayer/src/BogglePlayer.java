@@ -98,10 +98,11 @@ public class BogglePlayer {
         // if we found word in trie / dictionary
         Word currentWord = new Word(str);
 
-        if (root.leaf && str.length() > 4) {
+        if (root.leaf && str.length() > 4 && !isDuplicate(currentWord, foundWords)) {
             // Add to word list
             foundWords.add(currentWord);
             currentWord.addLetterRowAndCol(i, j);
+
         }
 
         // Mark the current cell as visited
@@ -124,8 +125,15 @@ public class BogglePlayer {
         // make current element unvisited
         visited[i][j] = false;
     }
-
-
+    // Helper method to check for duplicates in the foundWords list
+    static boolean isDuplicate(Word currentWord, ArrayList<Word> foundWords) {
+        for (Word word : foundWords) {
+            if (currentWord.getWord().equals(word.getWord())) {
+                return true; // Duplicate found
+            }
+        }
+        return false; // No duplicate found
+    }
     // Board: 4x4 board, each element is a letter, 'Q' represents "QU",
     //    first dimension is row, second dimension is column
     //    ie, board[row][col]
@@ -159,6 +167,8 @@ public class BogglePlayer {
                 }
             }
         }
+        // Room for optimization
+        foundWords.sort((word1, word2) -> Integer.compare(word2.getWord().length(), word1.getWord().length()));
         int numWordsToCopy = Math.min(foundWords.size(), 20);
         for (int i = 0; i < numWordsToCopy; i++) {
             myWords[i] = foundWords.get(i);
@@ -179,7 +189,7 @@ public class BogglePlayer {
         Word[] words = play.getWords(boggle);
         // Display found word list
         for (Word w : words) {
-            System.out.print(w.getWord() + "*");
+            System.out.println(w.getWord());
         }
     }
 }
