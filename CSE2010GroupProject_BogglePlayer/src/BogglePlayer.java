@@ -90,6 +90,7 @@ public class BogglePlayer {
         return (i >= 0 && i < M && j >= 0 && j < N && !visited[i][j]);
     }
 
+    static ArrayList<Location> flocations = new ArrayList<>();
     /**
      * Returns points for given word, based on length
      */
@@ -101,7 +102,13 @@ public class BogglePlayer {
         if (root.leaf && str.length() > 4 && !isDuplicate(currentWord, foundWords)) {
             // Add to word list
             foundWords.add(currentWord);
-            currentWord.addLetterRowAndCol(i, j);
+            for (int ind = 0; ind < flocations.size(); ind++) {
+               //currentWord.addLetterRowAndCol(flocations.get(ind).row, flocations.get(ind).col);
+               currentWord.setPath(flocations);
+            }
+            //currentWord.addLetterRowAndCol(i, j);
+            System.out.println(currentWord.getPathLength() + currentWord.getWord());
+            //System.out.println(foundWords.get(0).getWord());
 
         }
 
@@ -118,8 +125,13 @@ public class BogglePlayer {
 
             // Check if the new cell is safe to visit
             if (isSafe(newRow, newCol, visited) && root.children[boggle[newRow][newCol] - 'A'] != null) {
+               flocations.add(new Location(newRow, newCol));
                 searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, visited, str + boggle[newRow][newCol], foundWords);
-            }
+               if (flocations.size() > 1)
+                flocations.remove(flocations.size() - 1);
+               }
+               //if (flocations.size() > 1)
+                  //flocations.remove(flocations.size() -1);
         }
 
         // make current element unvisited
@@ -175,7 +187,7 @@ public class BogglePlayer {
         }
         return myWords;
     }
-
+    /* 
     // For program texting
     public static void main(String[] args) {
         // Test boggle game
@@ -191,6 +203,6 @@ public class BogglePlayer {
         for (Word w : words) {
             System.out.println(w.getWord());
         }
-    }
+    }*/
 }
 
