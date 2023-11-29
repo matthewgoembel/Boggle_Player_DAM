@@ -99,18 +99,24 @@ public class BogglePlayer {
         // if we found word in trie / dictionary
         Word currentWord = new Word(str);
 
-        if (root.leaf && str.length() > 4 && !isDuplicate(currentWord, foundWords)) {
+        if (root.leaf && str.length() > 2 && !isDuplicate(currentWord, foundWords)) {
+            ArrayList<Location> copyFLocation = new ArrayList<>(flocations);
             // Add to word list
+            //currentWord.setPath(flocations);
+            currentWord.setPath(copyFLocation);
             foundWords.add(currentWord);
-            for (int ind = 0; ind < flocations.size(); ind++) {
+            //for (int ind = 0; ind < flocations.size(); ind++) {
                //currentWord.addLetterRowAndCol(flocations.get(ind).row, flocations.get(ind).col);
-               currentWord.setPath(flocations);
-            }
+               
+            //}
             //currentWord.addLetterRowAndCol(i, j);
-            System.out.println(currentWord.getPathLength() + currentWord.getWord());
-            //System.out.println(foundWords.get(0).getWord());
-
-        }
+            //System.out.println(currentWord.getPathLength() + currentWord.getWord());
+            //System.out.println(foundWords.get(0).getWord() + " " + foundWords.get(0).getPathLength());
+            return;
+         }
+         if (isDuplicate(currentWord, foundWords)) {
+            //return;
+         }
 
         // Mark the current cell as visited
         visited[i][j] = true;
@@ -126,8 +132,8 @@ public class BogglePlayer {
             // Check if the new cell is safe to visit
             if (isSafe(newRow, newCol, visited) && root.children[boggle[newRow][newCol] - 'A'] != null) {
                flocations.add(new Location(newRow, newCol));
-                searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, visited, str + boggle[newRow][newCol], foundWords);
-               if (flocations.size() > 1)
+                searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, visited, str + boggle[newRow][newCol] , foundWords);
+               if (flocations.size() > 1 && foundWords.size() > 0)
                 flocations.remove(flocations.size() - 1);
                }
                //if (flocations.size() > 1)
@@ -173,18 +179,22 @@ public class BogglePlayer {
                 // of Trie root
                 if (pChild.children[(boggle[i][j]) - 'A'] != null && foundWords.size() < 20) {
                     str.append(boggle[i][j]);
+                    //flocations.clear();
                     searchWord(pChild.children[(boggle[i][j]) - 'A'],
                             boggle, i, j, visited, str.toString(), foundWords);
                     str = new StringBuilder();
+                    //flocations.clear();
                 }
             }
         }
+        System.out.println(foundWords.get(0).getWord() + " " + foundWords.get(0).getPathLength());
         // Room for optimization
-        foundWords.sort((word1, word2) -> Integer.compare(word2.getWord().length(), word1.getWord().length()));
+        //foundWords.sort((word1, word2) -> Integer.compare(word2.getWord().length(), word1.getWord().length()));
         int numWordsToCopy = Math.min(foundWords.size(), 20);
-        for (int i = 0; i < numWordsToCopy; i++) {
+        for (int i = 0; i < 20; i++) {
             myWords[i] = foundWords.get(i);
         }
+        System.out.println(myWords[0].getWord() + " " + myWords[0].getPathLength() + " boggleplayer line 187");
         return myWords;
     }
     /* 
