@@ -11,7 +11,7 @@ import java.util.ArrayList;
   Email addresses of group members:
   	aclayton2023@my.fit.edu
    	mgoembel2022@my.fit.edu
-    	ddean2022@my.fit.edu
+    ddean2022@my.fit.edu
 
   Group name: 34b
 
@@ -67,7 +67,7 @@ public class BogglePlayer {
         try (BufferedReader reader = new BufferedReader(new FileReader(wordFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String word = line.trim().toUpperCase();
+                String word = line.toUpperCase();
                 TrieNode node = root;
                 for (char c : word.toCharArray()) {
                     int charIndex = c - 'A';
@@ -105,7 +105,7 @@ public class BogglePlayer {
         // if we found word in trie / dictionary
         Word currentWord = new Word(str);
 
-        if (root.leaf && str.length() > 2 && !isDuplicate(currentWord, foundWords)) {
+        if (root.leaf && str.length() > 3 && !isDuplicate(currentWord, foundWords)) {
             // Add to word list
             foundWords.add(currentWord);
             currentWord.setPath(new ArrayList<>(flocations));
@@ -187,27 +187,5 @@ public class BogglePlayer {
         ArrayList<Word> top20Words = new ArrayList<>(foundWords.subList(0, numWordsToCopy));
         top20Words.toArray(myWords);
         return myWords;
-    }
-
-    // For program texting
-    public static void main(String[] args) {
-        // Test boggle game
-	/*
-        BogglePlayer play = new BogglePlayer(args[0]);
-        char[][] boggle = {
-                {'E', 'T', 'T', 'B'},
-                {'T', 'W', 'T', 'N'},
-                {'A', 'E', 'I', 'P'},
-                {'I', 'E', 'H', 'Z'}
-        };
-        Word[] words = play.getWords(boggle);
-        // Display found word list
-        for (Word w : words) {
-            for (Location q : w.getPath()) {
-                System.out.print(":(" + q.getRow() + " " + q.getCol() + ")");
-            }
-            System.out.println(w.getWord());
-        }
-	    */
     }
 }
