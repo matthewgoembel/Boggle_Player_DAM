@@ -192,6 +192,7 @@ public class BogglePlayer {
     // For program texting
     public static void main(String[] args) {
         // Test boggle game
+	/*
         BogglePlayer play = new BogglePlayer(args[0]);
         char[][] boggle = {
                 {'E', 'T', 'T', 'B'},
@@ -207,5 +208,6 @@ public class BogglePlayer {
             }
             System.out.println(w.getWord());
         }
+	    */
     }
 }
