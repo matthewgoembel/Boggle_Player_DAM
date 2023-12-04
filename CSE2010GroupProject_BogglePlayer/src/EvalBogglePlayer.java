@@ -1,4 +1,5 @@
-import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.management.*;
 import java.text.DecimalFormat;
@@ -6,7 +7,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.Scanner;
+//import java.util.Scanner;
 
 /*
 
@@ -63,12 +64,6 @@ public class EvalBogglePlayer {
             System.err.println("cpu time not supported, use wall-clock time:");
             System.err.println("Use System.nanoTime() instead of bean.getCurrentThreadCpuTime()");
             System.exit(-1);
-        }
-
-        //Read the dictionary
-        Scanner file = new Scanner(new File(args[0]));
-        while (file.hasNext()) {
-            dictionary.add(file.nextLine().toUpperCase());
         }
 
         //Preprocessing in BogglePlayer
@@ -143,6 +138,14 @@ public class EvalBogglePlayer {
           totalElapsedTime = 1.0 / 1.0E9;
        if (memory <= 0) // too small to measure, highly unlikely
           memory = 1;
+
+       
+        //Read the dictionary
+        BufferedReader file = new BufferedReader(new FileReader(args[0]));
+        String line;
+        while ( (line = file.readLine()) != null) {
+            dictionary.add(line.toUpperCase());
+        }
 
         //Calculate points for the words found
         int totalPoints = calculatePoints(words, board);
