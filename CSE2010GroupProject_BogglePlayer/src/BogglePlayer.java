@@ -13,7 +13,7 @@ import java.util.Set;
   Email addresses of group members:
   	aclayton2023@my.fit.edu
    	mgoembel2022@my.fit.edu
-    ddean2022@my.fit.edu
+    	ddean2022@my.fit.edu
 
   Group name: 34b
 
@@ -159,6 +159,9 @@ public class BogglePlayer {
         // Mark all characters as not visited
         boolean[][] visited = new boolean[M][N];
         TrieNode pChild = root;
+
+        Word start = new Word("");
+        foundWords.insert(0, start);
 
         StringBuilder str = new StringBuilder();
 
