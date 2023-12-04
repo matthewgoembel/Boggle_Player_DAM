@@ -76,3 +76,9 @@ All member met in person, finished our trie algorithm to successfully store word
 
 Meeting 11/29/2023
 All members met in person to fix code because the final score is showing 0 each time.
+
+12/1/2023
+Discussed potential optimizations to out code by using array list to store children instead of array with 26 slots by default.
+
+Meeting 12/4/2023
+All members met in person, implemented potential optimizations with our trie storage and game board storage.
