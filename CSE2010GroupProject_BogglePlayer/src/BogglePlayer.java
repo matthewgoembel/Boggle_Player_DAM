@@ -81,9 +81,7 @@ public class BogglePlayer {
         } catch (IOException e) {
             e.printStackTrace(); // Handle the exception according to your requirements
         }
-
     }
-
 
     static boolean isSafe(int i, int j, boolean[][] visited) {
         return (i >= 0 && i < M && j >= 0 && j < N && !visited[i][j]);
@@ -94,8 +92,8 @@ public class BogglePlayer {
      */
     static ArrayList<Location> flocations = new ArrayList<>();
 
-    static void searchWord(TrieNode root, char[][] boggle, int i,
-                           int j, boolean[][] visited, String str, ArrayList<Word> foundWords, ArrayList<Location> flocations) {
+    static void searchWord(TrieNode root, char[][] boggle, int i, int j, boolean[][] visited, 
+    		String str, ArrayList<Word> foundWords, ArrayList<Location> flocations) {
         // Mark the current cell as visited
         visited[i][j] = true;
 
@@ -105,7 +103,7 @@ public class BogglePlayer {
         // if we found word in trie / dictionary
         Word currentWord = new Word(str);
 
-        if (root.leaf && str.length() > 3 && !isDuplicate(currentWord, foundWords)) {
+        if (root.leaf && str.length() > 2 && !isDuplicate(currentWord, foundWords)) {
             // Add to word list
             foundWords.add(currentWord);
             currentWord.setPath(new ArrayList<>(flocations));
@@ -123,9 +121,11 @@ public class BogglePlayer {
             if (isSafe(newRow, newCol, visited) && root.children[boggle[newRow][newCol] - 'A'] != null) {
                 // Handle 'Q' case more effectively
                 if (boggle[newRow][newCol] == 'Q') {
+                	System.out.println("Has Q");
                     searchWord(root.children['Q' - 'A'], boggle, newRow, newCol, visited, str + "QU", foundWords, flocations);
                 } else {
-                    searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, visited, str + boggle[newRow][newCol], foundWords, flocations);
+                    searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, 
+                    		visited, str + boggle[newRow][newCol], foundWords, flocations);
                 }
             }
         }
@@ -168,7 +168,7 @@ public class BogglePlayer {
                 // we start searching for word in dictionary
                 // if we found a character which is child
                 // of Trie root
-                if (pChild.children[(boggle[i][j]) - 'A'] != null && foundWords.size() < 20) {
+                if (pChild.children[(boggle[i][j]) - 'A'] != null) {
                     str.append(boggle[i][j]);
                     // Handle 'Q' case
                     if (boggle[i][j] == 'Q') {
@@ -186,6 +186,9 @@ public class BogglePlayer {
         int numWordsToCopy = Math.min(foundWords.size(), 20);
         ArrayList<Word> top20Words = new ArrayList<>(foundWords.subList(0, numWordsToCopy));
         top20Words.toArray(myWords);
+        for (Word x : myWords) {
+        	System.out.println(x.getWord());
+        }
         return myWords;
     }
 }
