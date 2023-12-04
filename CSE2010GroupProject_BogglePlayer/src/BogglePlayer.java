@@ -2,18 +2,19 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 /*
-  Authors: 
+  Authors:
   	Clayton, Anthony
   	Dean, Darian
 	Goembel, Matthew
-  	
+
   Email addresses of group members:
   	aclayton2023@my.fit.edu
    	mgoembel2022@my.fit.edu
-    	ddean2022@my.fit.edu
-  	
+    ddean2022@my.fit.edu
+
   Group name: 34b
 
   Course: CSE 2010
@@ -48,7 +49,9 @@ public class BogglePlayer {
     }
 
     static TrieNode root = new TrieNode();
-    ArrayList<Word> foundWords = new ArrayList<>();
+    // ArrayList<Word> foundWords = new ArrayList<>();
+    static HeapPriorityQueue<Integer, Word> foundWords = new HeapPriorityQueue<>();
+    static Set<String> uniqueWords = new HashSet<>();
 
     // initialize BogglePlayer with a file of English words
     // initialize boggle board
@@ -68,7 +71,7 @@ public class BogglePlayer {
         try (BufferedReader reader = new BufferedReader(new FileReader(wordFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String word = line.trim().toUpperCase();
+                String word = line.toUpperCase();
                 TrieNode node = root;
                 for (char c : word.toCharArray()) {
                     int charIndex = c - 'A';
@@ -90,38 +93,28 @@ public class BogglePlayer {
         return (i >= 0 && i < M && j >= 0 && j < N && !visited[i][j]);
     }
 
-    static ArrayList<Location> flocations = new ArrayList<>();
     /**
      * Returns points for given word, based on length
      */
+    static ArrayList<Location> flocations = new ArrayList<>();
+
     static void searchWord(TrieNode root, char[][] boggle, int i,
-                           int j, boolean[][] visited, String str, ArrayList<Word> foundWords) {
-        // if we found word in trie / dictionary
+                           int j, boolean[][] visited, String str, HeapPriorityQueue<Integer, Word> foundWords, ArrayList<Location> flocations) {
+        visited[i][j] = true;
+        flocations.add(new Location(i, j));
+
         Word currentWord = new Word(str);
 
-        if (root.leaf && str.length() > 2 && !isDuplicate(currentWord, foundWords)) {
-            ArrayList<Location> copyFLocation = new ArrayList<>(flocations);
-            // Add to word list
-            //currentWord.setPath(flocations);
-            currentWord.setPath(copyFLocation);
-            foundWords.add(currentWord);
-            //for (int ind = 0; ind < flocations.size(); ind++) {
-               //currentWord.addLetterRowAndCol(flocations.get(ind).row, flocations.get(ind).col);
-               
-            //}
-            //currentWord.addLetterRowAndCol(i, j);
-            //System.out.println(currentWord.getPathLength() + currentWord.getWord());
-            //System.out.println(foundWords.get(0).getWord() + " " + foundWords.get(0).getPathLength());
-            return;
-         }
-         if (isDuplicate(currentWord, foundWords)) {
-            //return;
-         }
+        if (root.leaf && str.length() > 2 && !isDuplicate(currentWord)) {
+            if (foundWords.size() < 20 || currentWord.getWord().length() > foundWords.min().getKey()) {
+                if (foundWords.size() == 20) {
+                    foundWords.removeMin(); // Remove the word with the smallest length if the heap is full
+                }
+                foundWords.insert(currentWord.getWord().length(), currentWord);
+                currentWord.setPath(new ArrayList<>(flocations));
+            }
+        }
 
-        // Mark the current cell as visited
-        visited[i][j] = true;
-
-        // traverse all children of the current root
         int[] rowOffsets = {-1, -1, -1, 0, 0, 1, 1, 1};
         int[] colOffsets = {-1, 0, 1, -1, 1, -1, 0, 1};
 
@@ -129,27 +122,25 @@ public class BogglePlayer {
             int newRow = i + rowOffsets[k];
             int newCol = j + colOffsets[k];
 
-            // Check if the new cell is safe to visit
             if (isSafe(newRow, newCol, visited) && root.children[boggle[newRow][newCol] - 'A'] != null) {
-               flocations.add(new Location(newRow, newCol));
-                searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, visited, str + boggle[newRow][newCol] , foundWords);
-               if (flocations.size() > 1 && foundWords.size() > 0)
-                flocations.remove(flocations.size() - 1);
-               }
-               //if (flocations.size() > 1)
-                  //flocations.remove(flocations.size() -1);
-        }
-
-        // make current element unvisited
-        visited[i][j] = false;
-    }
-    // Helper method to check for duplicates in the foundWords list
-    static boolean isDuplicate(Word currentWord, ArrayList<Word> foundWords) {
-        for (Word word : foundWords) {
-            if (currentWord.getWord().equals(word.getWord())) {
-                return true; // Duplicate found
+                if (boggle[newRow][newCol] == 'Q') {
+                    searchWord(root.children['Q' - 'A'], boggle, newRow, newCol, visited, str + "QU", foundWords, flocations);
+                } else {
+                    searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, visited, str + boggle[newRow][newCol], foundWords, flocations);
+                }
             }
         }
+
+        visited[i][j] = false;
+        flocations.remove(flocations.size() - 1);
+    }
+    // Helper method to check for duplicates in the foundWords list
+    private static boolean isDuplicate(Word currentWord) {
+        String word = currentWord.getWord().toLowerCase(); // Convert to lowercase for case-insensitive comparison
+        if (uniqueWords.contains(word)) {
+            return true; // Duplicate found
+        }
+        uniqueWords.add(word); // Add the word to the HashSet to track uniqueness
         return false; // No duplicate found
     }
     // Board: 4x4 board, each element is a letter, 'Q' represents "QU",
@@ -177,42 +168,25 @@ public class BogglePlayer {
                 // we start searching for word in dictionary
                 // if we found a character which is child
                 // of Trie root
-                if (pChild.children[(boggle[i][j]) - 'A'] != null && foundWords.size() < 20) {
+                if (pChild.children[(boggle[i][j]) - 'A'] != null) {
                     str.append(boggle[i][j]);
-                    //flocations.clear();
+                    // Handle 'Q' case
+                    if (boggle[i][j] == 'Q') {
+                        str.append('U');
+                    }
+
                     searchWord(pChild.children[(boggle[i][j]) - 'A'],
-                            boggle, i, j, visited, str.toString(), foundWords);
+                            boggle, i, j, visited, str.toString(), foundWords, flocations);
                     str = new StringBuilder();
-                    //flocations.clear();
                 }
             }
         }
-        System.out.println(foundWords.get(0).getWord() + " " + foundWords.get(0).getPathLength());
-        // Room for optimization
-        //foundWords.sort((word1, word2) -> Integer.compare(word2.getWord().length(), word1.getWord().length()));
+
         int numWordsToCopy = Math.min(foundWords.size(), 20);
-        for (int i = 0; i < 20; i++) {
-            myWords[i] = foundWords.get(i);
+        for (int i = 0; i < numWordsToCopy; i++) {
+            myWords[i] = foundWords.removeMin().getValue();
         }
-        System.out.println(myWords[0].getWord() + " " + myWords[0].getPathLength() + " boggleplayer line 187");
+
         return myWords;
     }
-    /* 
-    // For program texting
-    public static void main(String[] args) {
-        // Test boggle game
-        BogglePlayer play = new BogglePlayer(args[0]);
-        char[][] boggle = {
-                {'N', 'N', 'I', 'C'},
-                {'S', 'E', 'D', 'R'},
-                {'M', 'A', 'R', 'E'},
-                {'B', 'O', 'T', 'S'}
-        };
-        Word[] words = play.getWords(boggle);
-        // Display found word list
-        for (Word w : words) {
-            System.out.println(w.getWord());
-        }
-    }*/
 }
-
