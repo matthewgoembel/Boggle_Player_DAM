@@ -184,12 +184,10 @@ public class BogglePlayer {
             }
         }
         int numWordsToCopy = Math.min(heapPQ.size(), 20);
-        for (int i = 0; i < numWordsToCopy; i++) {
+        
+        for (int i = 0; i < numWordsToCopy; i++) 
             myWords[i] = heapPQ.removeMin().getValue();
-        }
-        for (Word x : myWords) {
-        	System.out.println(x.getWord());
-        }
+
         return myWords;
     }
 }
