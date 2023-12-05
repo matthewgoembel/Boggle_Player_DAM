@@ -179,7 +179,7 @@ public class BogglePlayer {
                     }
                     searchWord(pChild.children[(boggle[i][j]) - 'A'],
                             boggle, i, j, visited, str.toString(), heapPQ, flocations);
-                    str = new StringBuilder();
+                    str.setLength(0);
                 }
             }
         }
