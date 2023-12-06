@@ -2,6 +2,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
 /*
   Authors:
   	Clayton, Anthony
@@ -14,55 +17,59 @@ import java.util.ArrayList;
     ddean2022@my.fit.edu
 
   Group name: 34b
-
   Course: CSE 2010
   Section: 34
 
-  Description of the overall algorithm and key data structures:
-
+  Description of the overall algorithm and key data structures: The provided Java 
+  code encapsulates a Boggle game solver that aims to efficiently identify valid 
+  English words within a given Boggle game board configuration. It constructs a 
+  Trie data structure from a file containing English words, enabling quick and 
+  organized word lookup. The algorithm systematically explores the Boggle board, 
+  employing depth-first search (DFS) to traverse possible word paths while accounting 
+  for 'Qu' combinations as a single letter. During traversal, it identifies valid word 
+  sequences and maintains a priority queue to track the top 20 longest words found. 
+  This solver utilizes multiple data structures and search algorithms to generate 
+  the longest valid words possible from the Boggle game board configuration provided to it.
 
 */
 
 public class BogglePlayer {
 
-    static final int SIZE = 26;
+    static final int SIZE = 26; // Alphabet Size
+    static final int M = 4;     // Board Width
+    static final int N = 4;     // Board Length
 
-    static final int M = 4;
-    static final int N = 4;
-
-    // trie Node
     static class TrieNode {
         TrieNode[] children = new TrieNode[SIZE];
+        boolean leaf;           // If node is the end of a word
 
-        // isLeaf is true if the node represents
-        // end of a word
-        boolean leaf;
-
-        // constructor
         public TrieNode() {
+            // Initialize children
             leaf = false;
             for (int i = 0; i < SIZE; i++)
                 children[i] = null;
         }
     }
-
+    // Starting node
     static TrieNode root = new TrieNode();
-    ArrayList<Word> foundWords = new ArrayList<>();
+    // Stores top 20 found words
+    static HeapPriorityQueue<Integer, Word> heapPQ = new HeapPriorityQueue<Integer, Word>();
+    // Ensures uniquness among words
+    static Set<String> uniqueWords = new HashSet<String>();
+    // Tracks path of each found word
+    static ArrayList<Location> flocations = new ArrayList<>();
 
-    // initialize BogglePlayer with a file of English words
-    // initialize boggle board
+    // Construct a trie using given wordFile
     public BogglePlayer(String wordFile) {
         buildTrie(wordFile);
     }
 
-    // buildTrie(word):
-    // 	 Each char of a word is an individual Trie node
-    //    For each char of the word:
-    //      Add new nodes only:
-    //        If word is a prefix of an existing word/Node already exists,
-    //        use same nodes as a prefix
-    //        If not create new node
-    //     Mark final nodes as endOfAWord
+    /**
+     * Buffered reader reads one word at a time
+     * Each char of the current word is added as a child at its alphabet index
+     * Final char of the word, leaf is set to true
+     * @param wordFile file of english words
+     */
     public void buildTrie(String wordFile) {
         try (BufferedReader reader = new BufferedReader(new FileReader(wordFile))) {
             String line;
@@ -83,112 +90,112 @@ public class BogglePlayer {
         }
     }
 
+    /**
+     * Checks if the cell(i, j) is a valid board position
+     * and has not been visited before
+     * @param i current row
+     * @param j current column
+     * @param visited Matrix of boolean locations
+     * @return true, if the cell is valid and unvisited
+     */
     static boolean isSafe(int i, int j, boolean[][] visited) {
         return (i >= 0 && i < M && j >= 0 && j < N && !visited[i][j]);
     }
 
     /**
-     * Returns points for given word, based on length
+     * ...
+     * @param root current TrieNode
+     * @param i current row
+     * @param j current col
+     * @param str Search string
      */
-    static ArrayList<Location> flocations = new ArrayList<>();
-
-    static void searchWord(TrieNode root, char[][] boggle, int i, int j, boolean[][] visited, 
-    		String str, ArrayList<Word> foundWords, ArrayList<Location> flocations) {
+    static void searchWord(TrieNode root, char[][] boggle, int i, int j, boolean[][] visited,
+                           String str, HeapPriorityQueue<Integer, Word> heapPQ, ArrayList<Location> flocations) {
         // Mark the current cell as visited
         visited[i][j] = true;
-
+        
         // Add the current location to the path
         flocations.add(new Location(i, j));
-
-        // if we found word in trie / dictionary
+        
         Word currentWord = new Word(str);
-
-        if (root.leaf && str.length() > 2 && !isDuplicate(currentWord, foundWords)) {
-            // Add to word list
-            foundWords.add(currentWord);
-            currentWord.setPath(new ArrayList<>(flocations));
+        // Checks if the word passes all requirements to the PQ.
+        if (root.leaf && str.length() > 2 && !uniqueWords.contains(str)) {
+            if (heapPQ.size() < 20 || currentWord.getWord().length() > heapPQ.min().getKey()) { 
+                if (heapPQ.size() == 20) {
+                    heapPQ.removeMin(); // Remove the word with the smallest length if the heap is full
+                    uniqueWords.remove(str);
+                }
+                
+                heapPQ.insert(currentWord.getWord().length(), currentWord);
+                currentWord.setPath(new ArrayList<>(flocations));
+                uniqueWords.add(str);
+            }
         }
 
-        // traverse all children of the current root
+        // All possible search directions
         int[] rowOffsets = {-1, -1, -1, 0, 0, 1, 1, 1};
         int[] colOffsets = {-1, 0, 1, -1, 1, -1, 0, 1};
 
         for (int k = 0; k < 8; k++) {
-            int newRow = i + rowOffsets[k];
-            int newCol = j + colOffsets[k];
+            int newRow = i + rowOffsets[k];  // Next cell row
+            int newCol = j + colOffsets[k];  // Next cell col
 
             // Check if the new cell is safe to visit
             if (isSafe(newRow, newCol, visited) && root.children[boggle[newRow][newCol] - 'A'] != null) {
-                // Handle 'Q' case more effectively
+                // 'Qu' special case
                 if (boggle[newRow][newCol] == 'Q') {
-                	System.out.println("Has Q");
-                    searchWord(root.children['Q' - 'A'], boggle, newRow, newCol, visited, str + "QU", foundWords, flocations);
+                    searchWord(root.children['Q' - 'A'], boggle, newRow, newCol, visited, str + "QU", heapPQ, flocations);
                 } else {
-                    searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, 
-                    		visited, str + boggle[newRow][newCol], foundWords, flocations);
+                    searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol,
+                            visited, str + boggle[newRow][newCol], heapPQ, flocations);
                 }
             }
         }
 
-        // Make the current element unvisited and remove the current location from the path
+        // Mark current element unvisited and remove current location from the path
         visited[i][j] = false;
         flocations.remove(flocations.size() - 1);
     }
-    // Helper method to check for duplicates in the foundWords list
-    static boolean isDuplicate(Word currentWord, ArrayList<Word> foundWords) {
-        for (Word word : foundWords) {
-            if (currentWord.getWord().equalsIgnoreCase(word.getWord())) {
-                return true; // Duplicate found
-            }
-        }
-        return false; // No duplicate found
-    }
-    // Board: 4x4 board, each element is a letter, 'Q' represents "QU",
-    //    first dimension is row, second dimension is column
-    //    ie, board[row][col]
 
-    // Return at most 20 valid words in UPPERCASE and
-    //    their paths of locations on the board in myWords;
-    //    Use null if fewer than 20 words.
-    //
-    // See Word.java for details of the Word class and
-    //    Location.java for details of the Location class
-
+    /**
+     * ...
+     * @param boggle boggle game board
+     * @return array of 20 longest found words
+     */
     public Word[] getWords(char[][] boggle) {
+        
         Word[] myWords = new Word[20];
-        // Mark all characters as not visited
+        // Initialize base variables
         boolean[][] visited = new boolean[M][N];
-        TrieNode pChild = root;
-
+        
+        TrieNode pChild = root; 
+        
         StringBuilder str = new StringBuilder();
+        
+        heapPQ.insert(0, new Word(""));   
 
-        // traverse all matrix elements
+        // Traverse each matrix elements, and search for words
         for (int i = 0; i < M; i++) {
             for (int j = 0; j < N; j++) {
-                // we start searching for word in dictionary
-                // if we found a character which is child
-                // of Trie root
+                // Check if a valid char
                 if (pChild.children[(boggle[i][j]) - 'A'] != null) {
                     str.append(boggle[i][j]);
-                    // Handle 'Q' case
+                    // Handle 'Qu' case
                     if (boggle[i][j] == 'Q') {
                         str.append('U');
                     }
-
                     searchWord(pChild.children[(boggle[i][j]) - 'A'],
-                            boggle, i, j, visited, str.toString(), foundWords, flocations);
-                    str = new StringBuilder();
+                            boggle, i, j, visited, str.toString(), heapPQ, flocations);
+                    str.setLength(0);  // Reset word to ""
                 }
             }
         }
-        // Room for optimization
-        foundWords.sort((word1, word2) -> Integer.compare(word2.getWord().length(), word1.getWord().length()));
-        int numWordsToCopy = Math.min(foundWords.size(), 20);
-        ArrayList<Word> top20Words = new ArrayList<>(foundWords.subList(0, numWordsToCopy));
-        top20Words.toArray(myWords);
-        for (Word x : myWords) {
-        	System.out.println(x.getWord());
-        }
+        // Top 20 words from the PQ
+        int numWordsToCopy = Math.min(heapPQ.size(), 20);
+        
+        for (int i = 0; i < numWordsToCopy; i++)
+            myWords[i] = heapPQ.removeMin().getValue();
+        
         return myWords;
     }
 }
