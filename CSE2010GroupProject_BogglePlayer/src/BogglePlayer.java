@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+
 /*
   Authors:
   	Clayton, Anthony
@@ -13,50 +14,45 @@ import java.util.Set;
   Email addresses of group members:
   	aclayton2023@my.fit.edu
    	mgoembel2022@my.fit.edu
-    ddean2022@my.fit.edu
+    	ddean2022@my.fit.edu
 
   Group name: 34b
-
   Course: CSE 2010
   Section: 34
 
   Description of the overall algorithm and key data structures:
 
-
 */
 
 public class BogglePlayer {
+	
+    static final int SIZE = 26; // Alphabet Size
+    static final int M = 4;     // Board Width
+    static final int N = 4;     // Board Length
 
-    static final int SIZE = 26;
-
-    static final int M = 4;
-    static final int N = 4;
-
-    // trie Node
     static class TrieNode {
         TrieNode[] children = new TrieNode[SIZE];
-
-        // isLeaf is true if the node represents
-        // end of a word
-        boolean leaf;
-
-        // constructor
+        boolean leaf;           // If node is the end of a word
+        
         public TrieNode() {
+	    // Initialize children
             leaf = false;
             for (int i = 0; i < SIZE; i++)
                 children[i] = null;
         }
     }
-
+    // Starting node
     static TrieNode root = new TrieNode();
+    // Stores top 20 found words
     static HeapPriorityQueue<Integer, Word> heapPQ = new HeapPriorityQueue<Integer, Word>();
+    // Ensures uniquness among words
     static Set<String> uniqueWords = new HashSet<String>();
-    // initialize BogglePlayer with a file of English words
-    // initialize boggle board
+	
+    // Construct a trie using given wordFile
     public BogglePlayer(String wordFile) {
         buildTrie(wordFile);
     }
-
+    
     // buildTrie(word):
     // 	 Each char of a word is an individual Trie node
     //    For each char of the word:
