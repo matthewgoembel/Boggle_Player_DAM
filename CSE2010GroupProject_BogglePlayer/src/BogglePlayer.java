@@ -25,7 +25,7 @@ import java.util.Set;
 */
 
 public class BogglePlayer {
-	
+
     static final int SIZE = 26; // Alphabet Size
     static final int M = 4;     // Board Width
     static final int N = 4;     // Board Length
@@ -33,9 +33,9 @@ public class BogglePlayer {
     static class TrieNode {
         TrieNode[] children = new TrieNode[SIZE];
         boolean leaf;           // If node is the end of a word
-        
+
         public TrieNode() {
-	    // Initialize children
+            // Initialize children
             leaf = false;
             for (int i = 0; i < SIZE; i++)
                 children[i] = null;
@@ -47,20 +47,20 @@ public class BogglePlayer {
     static HeapPriorityQueue<Integer, Word> heapPQ = new HeapPriorityQueue<Integer, Word>();
     // Ensures uniquness among words
     static Set<String> uniqueWords = new HashSet<String>();
-	
+    // Tracks path of each found word
+    static ArrayList<Location> flocations = new ArrayList<>();
+
     // Construct a trie using given wordFile
     public BogglePlayer(String wordFile) {
         buildTrie(wordFile);
     }
-    
-    // buildTrie(word):
-    // 	 Each char of a word is an individual Trie node
-    //    For each char of the word:
-    //      Add new nodes only:
-    //        If word is a prefix of an existing word/Node already exists,
-    //        use same nodes as a prefix
-    //        If not create new node
-    //     Mark final nodes as endOfAWord
+
+    /**
+     * Buffered reader reads one word at a time
+     * Each char of the current word is added as a child at its alphabet index
+     * Final char of the word, leaf is set to true
+     * @param wordFile file of english words
+     */
     public void buildTrie(String wordFile) {
         try (BufferedReader reader = new BufferedReader(new FileReader(wordFile))) {
             String line;
@@ -81,109 +81,112 @@ public class BogglePlayer {
         }
     }
 
+    /**
+     * Checks if the cell(i, j) is a valid board position
+     * and has not been visited before
+     * @param i current row
+     * @param j current column
+     * @param visited Matrix of boolean locations
+     * @return true, if the cell is valid and unvisited
+     */
     static boolean isSafe(int i, int j, boolean[][] visited) {
         return (i >= 0 && i < M && j >= 0 && j < N && !visited[i][j]);
     }
 
     /**
-     * Returns points for given word, based on length
+     * ...
+     * @param root current TrieNode
+     * @param i current row
+     * @param j current col
+     * @param str Search string
      */
-    static ArrayList<Location> flocations = new ArrayList<>();
-
-    static void searchWord(TrieNode root, char[][] boggle, int i, int j, boolean[][] visited, 
-    		String str, HeapPriorityQueue<Integer, Word> heapPQ, ArrayList<Location> flocations) {
+    static void searchWord(TrieNode root, char[][] boggle, int i, int j, boolean[][] visited,
+                           String str, HeapPriorityQueue<Integer, Word> heapPQ, ArrayList<Location> flocations) {
         // Mark the current cell as visited
         visited[i][j] = true;
-
+        
         // Add the current location to the path
         flocations.add(new Location(i, j));
-
-        // if we found word in trie / dictionary
+        
         Word currentWord = new Word(str);
-
+        // Checks if the word passes all requirements to the PQ.
         if (root.leaf && str.length() > 2 && !uniqueWords.contains(str)) {
-            
-        	if (heapPQ.size() < 20 || currentWord.getWord().length() > heapPQ.min().getKey()) {
+            if (heapPQ.size() < 20 || currentWord.getWord().length() > heapPQ.min().getKey()) { 
                 if (heapPQ.size() == 20) {
-                	heapPQ.removeMin(); // Remove the word with the smallest length if the heap is full
-                	uniqueWords.remove(str);
+                    heapPQ.removeMin(); // Remove the word with the smallest length if the heap is full
+                    uniqueWords.remove(str);
                 }
-        	
+                
                 heapPQ.insert(currentWord.getWord().length(), currentWord);
                 currentWord.setPath(new ArrayList<>(flocations));
                 uniqueWords.add(str);
-        	}
+            }
         }
 
-        // traverse all children of the current root
+        // All possible search directions
         int[] rowOffsets = {-1, -1, -1, 0, 0, 1, 1, 1};
         int[] colOffsets = {-1, 0, 1, -1, 1, -1, 0, 1};
 
         for (int k = 0; k < 8; k++) {
-            int newRow = i + rowOffsets[k];
-            int newCol = j + colOffsets[k];
+            int newRow = i + rowOffsets[k];  // Next cell row
+            int newCol = j + colOffsets[k];  // Next cell col
 
             // Check if the new cell is safe to visit
             if (isSafe(newRow, newCol, visited) && root.children[boggle[newRow][newCol] - 'A'] != null) {
-                // Handle 'Q' case more effectively
+                // 'Qu' special case
                 if (boggle[newRow][newCol] == 'Q') {
                     searchWord(root.children['Q' - 'A'], boggle, newRow, newCol, visited, str + "QU", heapPQ, flocations);
                 } else {
-                    searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol, 
-                    		visited, str + boggle[newRow][newCol], heapPQ, flocations);
+                    searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol,
+                            visited, str + boggle[newRow][newCol], heapPQ, flocations);
                 }
             }
         }
 
-        // Make the current element unvisited and remove the current location from the path
+        // Mark current element unvisited and remove current location from the path
         visited[i][j] = false;
         flocations.remove(flocations.size() - 1);
     }
 
-    // Board: 4x4 board, each element is a letter, 'Q' represents "QU",
-    //    first dimension is row, second dimension is column
-    //    ie, board[row][col]
-
-    // Return at most 20 valid words in UPPERCASE and
-    //    their paths of locations on the board in myWords;
-    //    Use null if fewer than 20 words.
-    //
-    // See Word.java for details of the Word class and
-    //    Location.java for details of the Location class
-
+    /**
+     * ...
+     * @param boggle boggle game board
+     * @return array of 20 longest found words
+     */
     public Word[] getWords(char[][] boggle) {
+        
         Word[] myWords = new Word[20];
-        // Mark all characters as not visited
+        // Initialize base variables
         boolean[][] visited = new boolean[M][N];
-        TrieNode pChild = root;
-
+        
+        TrieNode pChild = root; 
+        
         StringBuilder str = new StringBuilder();
         
-        heapPQ.insert(0, new Word(""));
+        heapPQ.insert(0, new Word(""));   
 
-        // traverse all matrix elements
+        // Traverse each matrix elements, and search for words
         for (int i = 0; i < M; i++) {
             for (int j = 0; j < N; j++) {
-                // we start searching for word in dictionary
-                // if we found a character which is child
-                // of Trie root
+                // Check if a valid char
                 if (pChild.children[(boggle[i][j]) - 'A'] != null) {
                     str.append(boggle[i][j]);
-                    // Handle 'Q' case
+                    // Handle 'Qu' case
                     if (boggle[i][j] == 'Q') {
                         str.append('U');
                     }
                     searchWord(pChild.children[(boggle[i][j]) - 'A'],
                             boggle, i, j, visited, str.toString(), heapPQ, flocations);
-                    str.setLength(0);
+                    str.setLength(0);  // Reset word to ""
                 }
             }
         }
+        // Top 20 words from the PQ
         int numWordsToCopy = Math.min(heapPQ.size(), 20);
         
-        for (int i = 0; i < numWordsToCopy; i++) 
+        for (int i = 0; i < numWordsToCopy; i++)
             myWords[i] = heapPQ.removeMin().getValue();
-
+        
         return myWords;
     }
 }
