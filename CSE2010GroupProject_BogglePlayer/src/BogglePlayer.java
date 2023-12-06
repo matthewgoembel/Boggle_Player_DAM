@@ -41,11 +41,11 @@ public class BogglePlayer {
 
     static class TrieNode {
         TrieNode[] children = new TrieNode[SIZE];
-        boolean leaf;           // If node is the end of a word
+        boolean isEndOfWord;           // If node is the end of a word
 
         public TrieNode() {
             // Initialize children
-            leaf = false;
+        	isEndOfWord = false;
             for (int i = 0; i < SIZE; i++)
                 children[i] = null;
         }
@@ -57,7 +57,7 @@ public class BogglePlayer {
     // Ensures uniquness among words
     static Set<String> uniqueWords = new HashSet<String>();
     // Tracks path of each found word
-    static ArrayList<Location> flocations = new ArrayList<>();
+    static ArrayList<Location> locations = new ArrayList<>();
 
     // Construct a trie using given wordFile
     public BogglePlayer(String wordFile) {
@@ -83,7 +83,7 @@ public class BogglePlayer {
                     }
                     node = node.children[charIndex];
                 }
-                node.leaf = true;
+                node.isEndOfWord = true;
             }
         } catch (IOException e) {
             e.printStackTrace(); // Handle the exception according to your requirements
@@ -109,17 +109,17 @@ public class BogglePlayer {
      * @param j current col
      * @param str Search string
      */
-    static void searchWord(TrieNode root, char[][] boggle, int i, int j, boolean[][] visited,
-                           String str, HeapPriorityQueue<Integer, Word> heapPQ, ArrayList<Location> flocations) {
+    static void searchWord(TrieNode currChild, char[][] boggle, int i, int j, boolean[][] visited,
+                           String str, HeapPriorityQueue<Integer, Word> heapPQ, ArrayList<Location> locations) {
         // Mark the current cell as visited
         visited[i][j] = true;
         
         // Add the current location to the path
-        flocations.add(new Location(i, j));
+        locations.add(new Location(i, j));
         
         Word currentWord = new Word(str);
         // Checks if the word passes all requirements to the PQ.
-        if (root.leaf && str.length() > 2 && !uniqueWords.contains(str)) {
+        if (currChild.isEndOfWord && str.length() > 2 && !uniqueWords.contains(str)) {
             if (heapPQ.size() < 20 || currentWord.getWord().length() > heapPQ.min().getKey()) { 
                 if (heapPQ.size() == 20) {
                     heapPQ.removeMin(); // Remove the word with the smallest length if the heap is full
@@ -127,7 +127,7 @@ public class BogglePlayer {
                 }
                 
                 heapPQ.insert(currentWord.getWord().length(), currentWord);
-                currentWord.setPath(new ArrayList<>(flocations));
+                currentWord.setPath(new ArrayList<>(locations));
                 uniqueWords.add(str);
             }
         }
@@ -141,20 +141,20 @@ public class BogglePlayer {
             int newCol = j + colOffsets[k];  // Next cell col
 
             // Check if the new cell is safe to visit
-            if (isSafe(newRow, newCol, visited) && root.children[boggle[newRow][newCol] - 'A'] != null) {
+            if (isSafe(newRow, newCol, visited) && currChild.children[boggle[newRow][newCol] - 'A'] != null) {
                 // 'Qu' special case
                 if (boggle[newRow][newCol] == 'Q') {
-                    searchWord(root.children['Q' - 'A'], boggle, newRow, newCol, visited, str + "QU", heapPQ, flocations);
+                    searchWord(currChild.children['Q' - 'A'], boggle, newRow, newCol, visited, str + "QU", heapPQ, locations);
                 } else {
-                    searchWord(root.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol,
-                            visited, str + boggle[newRow][newCol], heapPQ, flocations);
+                    searchWord(currChild.children[boggle[newRow][newCol] - 'A'], boggle, newRow, newCol,
+                            visited, str + boggle[newRow][newCol], heapPQ, locations);
                 }
             }
         }
 
         // Mark current element unvisited and remove current location from the path
         visited[i][j] = false;
-        flocations.remove(flocations.size() - 1);
+        locations.remove(locations.size() - 1);
     }
 
     /**
@@ -168,7 +168,7 @@ public class BogglePlayer {
         // Initialize base variables
         boolean[][] visited = new boolean[M][N];
         
-        TrieNode pChild = root; 
+        TrieNode currChild = root; 
         
         StringBuilder str = new StringBuilder();
         
@@ -178,14 +178,14 @@ public class BogglePlayer {
         for (int i = 0; i < M; i++) {
             for (int j = 0; j < N; j++) {
                 // Check if a valid char
-                if (pChild.children[(boggle[i][j]) - 'A'] != null) {
+                if (currChild.children[(boggle[i][j]) - 'A'] != null) {
                     str.append(boggle[i][j]);
                     // Handle 'Qu' case
                     if (boggle[i][j] == 'Q') {
                         str.append('U');
                     }
-                    searchWord(pChild.children[(boggle[i][j]) - 'A'],
-                            boggle, i, j, visited, str.toString(), heapPQ, flocations);
+                    searchWord(currChild.children[(boggle[i][j]) - 'A'],
+                            boggle, i, j, visited, str.toString(), heapPQ, locations);
                     str.setLength(0);  // Reset word to ""
                 }
             }
