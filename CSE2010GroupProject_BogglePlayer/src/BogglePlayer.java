@@ -14,7 +14,7 @@ import java.util.Set;
   Email addresses of group members:
   	aclayton2023@my.fit.edu
    	mgoembel2022@my.fit.edu
-    ddean2022@my.fit.edu
+    	ddean2022@my.fit.edu
 
   Group name: 34b
   Course: CSE 2010
